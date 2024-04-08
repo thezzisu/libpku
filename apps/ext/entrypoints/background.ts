@@ -1,8 +1,8 @@
 import type { Tabs } from 'wxt/browser'
 
 export default defineBackground(() => {
-  function setActionIcon(tab: Tabs.Tab) {
-    const { trusted } = getUrlInfo(tab.url)
+  function setActionIcon(url?: string) {
+    const { trusted } = getUrlInfo(url)
     if (trusted) {
       browser.action.setIcon({
         path: {
@@ -28,11 +28,14 @@ export default defineBackground(() => {
 
   browser.tabs.onActivated.addListener(async ({ tabId }) => {
     const tab = await browser.tabs.get(tabId)
-    setActionIcon(tab)
+    setActionIcon(tab.url)
+  })
+  browser.tabs.onUpdated.addListener(async (tabId, changeInfo) => {
+    changeInfo.url && setActionIcon(changeInfo.url)
   })
   browser.runtime.onInstalled.addListener(() => {
     browser.tabs
       .query({ active: true, currentWindow: true })
-      .then(([tab]) => tab && setActionIcon(tab))
+      .then(([tab]) => tab && setActionIcon(tab.url))
   })
 })
