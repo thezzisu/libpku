@@ -9,7 +9,10 @@ export default defineConfig({
     name: 'LibPKU Browser Extension',
     short_name: 'LibPKU',
     description: 'Browser extension to work with LibPKU',
-    permissions: ['tabs', 'downloads']
+    permissions: ['activeTab'],
+    optional_permissions: ['cookies'],
+    // @ts-expect-error This is a valid manifest key
+    optional_host_permissions: ['*://*.pku.edu.cn/*']
   },
   imports: {
     addons: {

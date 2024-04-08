@@ -1,13 +1,8 @@
 <template>
   <VCardSubtitle>下载课堂实录</VCardSubtitle>
   <template v-if="canDownload">
-    <VCardText>
-      下载配置后，执行如下命令以下载视频：
-      <pre>npx @libpku/cli@latest batch request.json</pre>
-      或者直接复制命令并在终端粘贴并执行。
-    </VCardText>
+    <VCardText> 复制命令后在终端中执行即可。 </VCardText>
     <VCardActions>
-      <VBtn text="下载配置" @click="download" :loading="downloadLoading" />
       <VBtn text="复制命令" @click="copy" :loading="copyLoading" />
     </VCardActions>
   </template>
@@ -28,31 +23,49 @@ const canDownload = computed(
 const downloadLoading = ref(false)
 const copyLoading = ref(false)
 
-async function download() {
-  downloadLoading.value = true
-  try {
-    const data = await sendMessage('course:get-video-urls', undefined, ctx.value.tabId)
-    const buffer = new TextEncoder().encode(JSON.stringify(data))
-    const base64 = btoa(String.fromCharCode(...buffer))
-    const command = ['course', 'video', base64]
-    const blob = new Blob([JSON.stringify(command)], { type: 'application/json' })
-    browser.downloads.download({
-      url: URL.createObjectURL(blob),
-      saveAs: true,
-      filename: 'request.json'
+async function extract() {
+  const granted = await browser.permissions.request({
+    origins: ['*://course.pku.edu.cn/*'],
+    permissions: ['cookies']
+  })
+  if (!granted) throw new Error('未授权')
+  const cookie = await browser.cookies.get({
+    url: 'https://course.pku.edu.cn',
+    name: '_token'
+  })
+  if (!cookie) throw new Error('未找到 Cookie')
+  const token = decodeURIComponent(cookie.value)
+  const jwt = /{i:\d+;s:\d+:"_token";i:\d+;s:\d+:"(.+?)";}/.exec(token)![1]
+  const html = await fetch(ctx.value.url).then((r) => r.text())
+  const parser = new DOMParser()
+  const dom = parser.parseFromString(html, 'text/html')
+  const selector = 'tr[id^=listContainer_row] > td:nth-child(4) > span.table-data-cell-value > a'
+  const url = `https://yjapise.pku.edu.cn/courseapi/v2/schedule/search-live-course-list?all=1&course_id={hqyCourseId}&sub_id={hqySubId}&with_sub_data=1`
+  const list = [...dom.querySelectorAll(selector)]
+    .map((a) => (a as HTMLAnchorElement).href)
+    .map((u) => new URL(u).searchParams)
+    .map((s) => url.replace(/\{[^}]+\}/g, (m) => s.get(m.slice(1, -1))!))
+    .map((u) => fetch(u, { headers: { Authorization: `Bearer ${jwt}` } }))
+    .map((p) => p.then((r) => r.json()))
+  const resp = await Promise.all(list)
+  const videos = resp
+    .flatMap((i) => i.list)
+    .map(({ title, sub_title, sub_content }) => {
+      const {
+        save_playback: { contents }
+      } = JSON.parse(sub_content)
+      return { title, subTitle: sub_title, url: contents }
     })
-  } catch (err) {
-    alert(`错误：${err}`)
-  }
-  downloadLoading.value = false
+  const data = { token, videos }
+  const buffer = new TextEncoder().encode(JSON.stringify(data))
+  const base64 = btoa(String.fromCharCode(...buffer))
+  return { data, buffer, base64 }
 }
 
 async function copy() {
   copyLoading.value = true
   try {
-    const data = await sendMessage('course:get-video-urls', undefined, ctx.value.tabId)
-    const buffer = new TextEncoder().encode(JSON.stringify(data))
-    const base64 = btoa(String.fromCharCode(...buffer))
+    const { base64 } = await extract()
     const command = ['npx', '@libpku/cli@latest', 'course', 'video', base64]
     await navigator.clipboard.writeText(command.join(' '))
     alert('已复制命令')

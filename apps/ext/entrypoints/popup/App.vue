@@ -1,6 +1,6 @@
 <template>
   <VCard flat class="u-min-w-96">
-    <VCardTitle class="u-flex u-items-center">
+    <VCardTitle class="d-flex align-center">
       <div>Lib<b>PKU</b></div>
       <VBtn
         icon="mdi-github"
@@ -9,8 +9,7 @@
         target="_blank"
       />
       <VSpacer />
-      <VChip v-if="site" prepend-icon="mdi-check-decagram" color="success" :text="site" />
-      <VChip v-else color="warning" text="非北大网站" />
+      <VChip v-bind="site" />
     </VCardTitle>
     <AsyncState :state="activeTab">
       <template v-slot="{ value }">

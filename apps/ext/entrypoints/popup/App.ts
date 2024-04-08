@@ -8,13 +8,6 @@ const key: InjectionKey<
   }>
 > = Symbol('popup_app')
 
-const knownSites: Record<string, string> = {
-  'course.pku.edu.cn': '北大教学网',
-  'its.pku.edu.cn': '北大网络服务',
-  'treehole.pku.edu.cn': '北大树洞',
-  'portal.pku.edu.cn': '北大信息门户'
-}
-
 export function useApp() {
   const activeTab = useAsyncState(async () => {
     const tabs = await browser.tabs.query({ active: true, currentWindow: true })
@@ -29,10 +22,12 @@ export function useApp() {
   )
   const site = computed(() => {
     const url = activeTab.state.value?.url
-    const hostname = url && new URL(url).hostname
-    if (!hostname || !hostname.match(/^([^.]+\.)*pku\.edu\.cn$/)) return ''
-    if (hostname in knownSites) return knownSites[hostname]
-    return '北大网站群'
+    const { trusted, name, color } = getUrlInfo(url)
+    return {
+      prependIcon: trusted ? 'mdi-check-decagram' : '',
+      text: name,
+      color
+    }
   })
   return { activeTab, site }
 }
