@@ -1,0 +1,37 @@
+{
+  "name": "@libpku/ext",
+  "description": "LibPKU Web Extension",
+  "private": true,
+  "version": "0.0.1",
+  "type": "module",
+  "scripts": {
+    "dev": "wxt",
+    "dev:firefox": "wxt -b firefox",
+    "build": "wxt build",
+    "build:firefox": "wxt build -b firefox",
+    "zip": "wxt zip",
+    "zip:firefox": "wxt zip -b firefox",
+    "postinstall": "wxt prepare",
+    "type-check": "vue-tsc --noEmit",
+    "lint": "run -T eslint --ignore-path .gitignore .",
+    "format": "run -T prettier --ignore-path .gitignore --check ."
+  },
+  "dependencies": {
+    "@mdi/font": "^7.4.47",
+    "@vueuse/core": "^10.9.0",
+    "@webext-core/messaging": "^1.4.0",
+    "vue": "^3.4.0",
+    "vuetify": "^3.5.14"
+  },
+  "devDependencies": {
+    "@vitejs/plugin-vue": "^5.0.1",
+    "@vue/eslint-config-prettier": "^9.0.0",
+    "@vue/eslint-config-typescript": "^13.0.0",
+    "eslint-plugin-vue": "^9.24.0",
+    "typescript": "^5.3.3",
+    "unocss": "^0.59.0",
+    "vite-plugin-vuetify": "^2.0.3",
+    "vue-tsc": "^2.0.6",
+    "wxt": "^0.17.0"
+  }
+}

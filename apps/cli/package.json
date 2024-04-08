@@ -1,0 +1,41 @@
+{
+  "name": "@libpku/cli",
+  "version": "0.0.4",
+  "type": "module",
+  "publishConfig": {
+    "access": "public"
+  },
+  "license": "AGPL-3.0-only",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/thezzisu/libpku.git",
+    "directory": "apps/cli"
+  },
+  "main": "lib/index.js",
+  "files": [
+    "lib"
+  ],
+  "bin": {
+    "pku": "lib/bin.js"
+  },
+  "scripts": {
+    "build": "run -T tsc",
+    "type-check": "run -T tsc --noEmit",
+    "lint": "run -T eslint --ignore-path .gitignore .",
+    "format": "run -T prettier --ignore-path .gitignore --check ."
+  },
+  "dependencies": {
+    "@clack/prompts": "^0.7.0",
+    "@types/which": "^3.0.3",
+    "clipanion": "^4.0.0-rc.3",
+    "consola": "^3.2.3",
+    "fastify": "^4.26.2",
+    "fs-extra": "^11.2.0",
+    "typanion": "^3.14.0",
+    "which": "^4.0.0",
+    "yaml": "^2.4.1"
+  },
+  "devDependencies": {
+    "@types/fs-extra": "^11.0.4"
+  }
+}
