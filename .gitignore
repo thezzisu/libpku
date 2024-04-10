@@ -13,3 +13,6 @@ node_modules
 
 *.tsbuildinfo
 package.tgz
+
+docs/.vitepress/dist
+docs/.vitepress/cache

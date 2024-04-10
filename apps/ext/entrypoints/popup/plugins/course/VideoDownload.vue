@@ -33,7 +33,7 @@ async function extract() {
     url: 'https://course.pku.edu.cn',
     name: '_token'
   })
-  if (!cookie) throw new Error('未找到 Cookie')
+  if (!cookie) throw new Error('未找到Cookie!请先看一个视频再重试')
   const token = decodeURIComponent(cookie.value)
   const jwt = /{i:\d+;s:\d+:"_token";i:\d+;s:\d+:"(.+?)";}/.exec(token)![1]
   const html = await fetch(ctx.value.url).then((r) => r.text())
