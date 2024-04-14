@@ -17,16 +17,22 @@
         />
       </VToolbarItems>
     </VToolbar>
-    <AsyncState :state="activeTab">
+    <AsyncState :state="state">
       <template v-slot="{ value }">
         <VList>
-          <VListItem :title="value.title" :subtitle="value.url" :prepend-avatar="value.favIconUrl">
+          <VListItem
+            :title="value.tab.title"
+            :subtitle="value.tab.url"
+            :prepend-avatar="value.tab.favIconUrl"
+          >
             <template #append>
               <VChip v-bind="site" />
             </template>
           </VListItem>
         </VList>
-        <Plugins v-if="value.url" />
+        <template v-for="(tool, i) in value.tools" :key="i">
+          <component :is="toolsComponents[tool]" />
+        </template>
       </template>
     </AsyncState>
   </VCard>
@@ -34,9 +40,9 @@
 
 <script lang="ts" setup>
 import { useApp } from './App'
-import Plugins from './plugins/Plugins.vue'
 
 import AsyncState from '@/components/AsyncState.vue'
+import { toolsComponents } from '@/components/tools'
 
-const { activeTab, site } = useApp()
+const { state, site } = useApp()
 </script>

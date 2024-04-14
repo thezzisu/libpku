@@ -2,7 +2,7 @@
   "name": "@libpku/ext",
   "description": "LibPKU Web Extension",
   "private": true,
-  "version": "0.0.1",
+  "version": "0.0.3",
   "type": "module",
   "scripts": {
     "dev": "wxt",
@@ -20,18 +20,18 @@
     "@mdi/font": "^7.4.47",
     "@vueuse/core": "^10.9.0",
     "@webext-core/messaging": "^1.4.0",
-    "vue": "^3.4.0",
-    "vuetify": "^3.5.14"
+    "vue": "^3.4.21",
+    "vuetify": "^3.5.15"
   },
   "devDependencies": {
-    "@vitejs/plugin-vue": "^5.0.1",
+    "@vitejs/plugin-vue": "^5.0.4",
     "@vue/eslint-config-prettier": "^9.0.0",
     "@vue/eslint-config-typescript": "^13.0.0",
-    "eslint-plugin-vue": "^9.24.0",
+    "eslint-plugin-vue": "^9.24.1",
     "typescript": "^5.3.3",
-    "unocss": "^0.59.0",
+    "unocss": "^0.59.2",
     "vite-plugin-vuetify": "^2.0.3",
-    "vue-tsc": "^2.0.6",
-    "wxt": "^0.17.0"
+    "vue-tsc": "^2.0.13",
+    "wxt": "^0.17.12"
   }
 }

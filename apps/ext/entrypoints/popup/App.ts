@@ -1,27 +1,17 @@
 import { useAsyncState } from '@vueuse/core'
-import { ComputedRef, InjectionKey, computed, inject, provide } from 'vue'
+import { computed } from 'vue'
 
-const key: InjectionKey<
-  ComputedRef<{
-    tabId: number
-    url: string
-  }>
-> = Symbol('popup_app')
+import { getEnabledTools } from '@/tools'
 
 export function useApp() {
-  const activeTab = useAsyncState(async () => {
-    const tabs = await browser.tabs.query({ active: true, currentWindow: true })
-    return tabs[0]
+  const state = useAsyncState(async () => {
+    const [tab] = await browser.tabs.query({ active: true, currentWindow: true })
+    const tools = tab?.url ? await getEnabledTools({ url: tab.url }) : []
+    return { tab, tools }
   }, null)
-  provide(
-    key,
-    computed(() => ({
-      tabId: activeTab.state.value?.id || 0,
-      url: activeTab.state.value?.url || ''
-    }))
-  )
+
   const site = computed(() => {
-    const url = activeTab.state.value?.url
+    const url = state.state.value?.tab.url
     const { trusted, name, color } = getUrlInfo(url)
     return {
       prependIcon: trusted ? 'mdi-check-decagram' : '',
@@ -29,9 +19,5 @@ export function useApp() {
       color
     }
   })
-  return { activeTab, site }
-}
-
-export function useAppCtx() {
-  return inject(key)!
+  return { state, site }
 }

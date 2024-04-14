@@ -5,6 +5,7 @@ import { cancel, isCancel, multiselect, text } from '@clack/prompts'
 import { Option } from 'clipanion'
 import { consola } from 'consola'
 import * as fs from 'fs-extra'
+import terminalLink from 'terminal-link'
 import { isArray, isObject, isString } from 'typanion'
 import which from 'which'
 
@@ -15,7 +16,7 @@ export class CourseVideoDownloadCommand extends BaseCommand {
 
   static usage = this.Usage({
     category: 'Course',
-    description: `Start courses.pku.edu.cn video downloader`
+    description: `Start ${terminalLink('course.pku.edu.cn', 'https://course.pku.edu.cn')} video downloader`
   })
 
   private static isDownloadData = isObject({
@@ -32,6 +33,7 @@ export class CourseVideoDownloadCommand extends BaseCommand {
   output = Option.String('-o,--output', { required: false })
   ffmpeg = Option.String('--ffmpeg', { required: false })
   m3u8dl = Option.String('--m3u8dl', { required: false })
+  curl = Option.String('--curl', { required: false })
   info = Option.String({ required: true })
 
   cancel<T>(value: T | symbol): asserts value is T {
@@ -61,10 +63,24 @@ export class CourseVideoDownloadCommand extends BaseCommand {
     if (path) return path
     for (;;) {
       const value = await text({
-        message: 'Please enter the path to N_m3u8DL-RE. Leave empty to use ffmpeg (slow!)'
+        message: `Please enter the path to ${terminalLink('N_m3u8DL-RE', 'https://github.com/nilaoda/N_m3u8DL-RE')}. Leave empty to use ffmpeg (slow!)`
       })
       this.cancel(value)
       if (!value) return null
+      if (await fs.pathExists(value)) return value
+      consola.error(`File not found: ${value}`)
+    }
+  }
+
+  async getCurlPath() {
+    if (this.curl && (await fs.pathExists(this.curl))) return this.curl
+    const path = await which('curl', { nothrow: true })
+    if (path) return path
+    for (;;) {
+      const value = await text({
+        message: 'Please enter the path to curl'
+      })
+      this.cancel(value)
       if (await fs.pathExists(value)) return value
       consola.error(`File not found: ${value}`)
     }
@@ -88,8 +104,11 @@ export class CourseVideoDownloadCommand extends BaseCommand {
       initialValues: videos.map((_, index) => index)
     })
     this.cancel(selection)
-    const ffmpeg = await this.getFfmpegPath()
-    const m3u8dl = await this.getM3u8DlPath()
+    const hasM3u8 = videos.some(({ url }) => path.extname(new URL(url).pathname) === '.m3u8')
+    const hasMp4 = videos.some(({ url }) => path.extname(new URL(url).pathname) === '.mp4')
+    const ffmpeg = hasM3u8 ? await this.getFfmpegPath() : ''
+    const m3u8dl = hasM3u8 ? await this.getM3u8DlPath() : ''
+    const curl = hasMp4 ? await this.getCurlPath() : ''
 
     const base = path.resolve(this.output ?? '.')
     for (const index of selection) {
@@ -134,7 +153,7 @@ export class CourseVideoDownloadCommand extends BaseCommand {
           }
           break
         case '.mp4':
-          await this.exec('curl', ['-H', cookieHeader, '-o', dstname, url])
+          await this.exec(curl, ['-H', cookieHeader, '-o', dstname, url])
           break
         default:
           consola.error(`Unsupported video format: ${extname}`)
@@ -143,7 +162,6 @@ export class CourseVideoDownloadCommand extends BaseCommand {
   }
 
   async exec(cmd: string, args: string[]) {
-    consola.info(`$ ${cmd} ${args.join(' ')}`)
     const process = spawn(cmd, args, { stdio: 'inherit' })
     return new Promise<void>((resolve, reject) => {
       process.on('exit', (code) => {

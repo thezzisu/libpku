@@ -1,7 +1,14 @@
-import type { Tabs } from 'wxt/browser'
+import { getEnabledTools } from '@/tools'
 
 export default defineBackground(() => {
-  function setActionIcon(url?: string) {
+  function updatePopup(url?: string) {
+    if (url) {
+      getEnabledTools({ url }).then(({ length }) =>
+        browser.action.setBadgeText({
+          text: length ? `${length}` : null
+        })
+      )
+    }
     const { trusted } = getUrlInfo(url)
     if (trusted) {
       browser.action.setIcon({
@@ -28,14 +35,14 @@ export default defineBackground(() => {
 
   browser.tabs.onActivated.addListener(async ({ tabId }) => {
     const tab = await browser.tabs.get(tabId)
-    setActionIcon(tab.url)
+    updatePopup(tab.url)
   })
   browser.tabs.onUpdated.addListener(async (tabId, changeInfo) => {
-    changeInfo.url && setActionIcon(changeInfo.url)
+    changeInfo.url && updatePopup(changeInfo.url)
   })
   browser.runtime.onInstalled.addListener(() => {
     browser.tabs
       .query({ active: true, currentWindow: true })
-      .then(([tab]) => tab && setActionIcon(tab.url))
+      .then(([tab]) => tab && updatePopup(tab.url))
   })
 })

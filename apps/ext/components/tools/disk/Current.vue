@@ -11,14 +11,17 @@
 </template>
 
 <script setup lang="ts">
+import { useAsyncState } from '@vueuse/core'
 import { computed } from 'vue'
 
-import { useAppCtx } from '../../App'
-
-const ctx = useAppCtx()
+const url = useAsyncState(async () => {
+  const [tab] = await browser.tabs.query({ active: true, currentWindow: true })
+  return tab.url ?? ''
+}, '')
 
 const gns = computed(() => {
-  const params = new URL(ctx.value.url).searchParams
+  if (!url.state.value) return ''
+  const params = new URL(url.state.value).searchParams
   return params.get('item_id') || (params.has('gns') && `gns://${params.get('gns')}`) || ''
 })
 
